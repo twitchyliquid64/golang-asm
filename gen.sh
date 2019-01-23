@@ -1,4 +1,6 @@
 #!/bin/bash
+# Downloads the Go sources, building the assembler into a standalone package.
+# Cleanup: rm -rf $GOPATH/src/github.com/twitchyliquid64/golang-asm/{obj,objabi,sys,src,dwarf}
 
 BASE_PKG_PATH="github.com/twitchyliquid64/golang-asm"
 
@@ -30,6 +32,13 @@ find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s_\"cmd/interna
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s_\"cmd/internal/dwarf_\"${BASE_PKG_PATH}/dwarf_g" {} \;
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s_\"cmd/internal/src_\"${BASE_PKG_PATH}/src_g" {} \;
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s_\"cmd/internal/sys_\"${BASE_PKG_PATH}/sys_g" {} \;
+# Move arch.
+mkdir -pv ${GOPATH}/src/${BASE_PKG_PATH}/asm
+cp -rv ${TMP_PATH}/go/src/cmd/asm/internal/arch ${GOPATH}/src/${BASE_PKG_PATH}/asm/arch
+find ${GOPATH}/src/${BASE_PKG_PATH}/asm/arch -type f -exec sed -i "s_\"cmd/internal/obj_\"${BASE_PKG_PATH}/obj_g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/asm/arch -type f -exec sed -i "s_\"cmd/internal/dwarf_\"${BASE_PKG_PATH}/dwarf_g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/asm/arch -type f -exec sed -i "s_\"cmd/internal/src_\"${BASE_PKG_PATH}/src_g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/asm/arch -type f -exec sed -i "s_\"cmd/internal/sys_\"${BASE_PKG_PATH}/sys_g" {} \;
 
 # Move dwarf.
 cp -rv ${TMP_PATH}/go/src/cmd/internal/dwarf ${GOPATH}/src/${BASE_PKG_PATH}/dwarf
@@ -46,9 +55,9 @@ find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOOS/\
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOARCH/\"$(go env GOARCH)\"/g" {} \;
 
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGO386/\"\"/g" {} \;
-find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOARM/\"\"/g" {} \;
-find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOMIPS64/\"\"/g" {} \;
-find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOMIPS/\"\"/g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOARM/\"7\"/g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOMIPS64/\"hardfloat\"/g" {} \;
+find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGOMIPS/\"hardfloat\"/g" {} \;
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/= version/= \"\"/g" {} \;
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/defaultGO_EXTLINK_ENABLED/\"\"/g" {} \;
 find ${GOPATH}/src/${BASE_PKG_PATH}/objabi -type f -exec sed -i "s/goexperiment/\"\"/g" {} \;

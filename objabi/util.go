@@ -32,7 +32,7 @@ var (
 )
 
 func goarm() int {
-	switch v := envOr("GOARM", ""); v {
+	switch v := envOr("GOARM", "7"); v {
 	case "5":
 		return 5
 	case "6":
@@ -46,7 +46,7 @@ func goarm() int {
 }
 
 func gomips() string {
-	switch v := envOr("GOMIPS", ""); v {
+	switch v := envOr("GOMIPS", "hardfloat"); v {
 	case "hardfloat", "softfloat":
 		return v
 	}
@@ -55,7 +55,7 @@ func gomips() string {
 }
 
 func gomips64() string {
-	switch v := envOr("GOMIPS64", ""); v {
+	switch v := envOr("GOMIPS64", "hardfloat"); v {
 	case "hardfloat", "softfloat":
 		return v
 	}

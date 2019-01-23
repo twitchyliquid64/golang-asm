@@ -31,14 +31,13 @@
 package x86
 
 import (
+	"github.com/twitchyliquid64/golang-asm/obj"
+	"github.com/twitchyliquid64/golang-asm/objabi"
+	"github.com/twitchyliquid64/golang-asm/sys"
 	"encoding/binary"
 	"fmt"
 	"log"
 	"strings"
-
-	"github.com/twitchyliquid64/golang-asm/obj"
-	"github.com/twitchyliquid64/golang-asm/objabi"
-	"github.com/twitchyliquid64/golang-asm/sys"
 )
 
 var (
