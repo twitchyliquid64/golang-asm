@@ -52,6 +52,20 @@ func movImmediateByte(builder *asm.Builder, in int32) *obj.Prog {
         return prog
 }
 
+func lea(builder *asm.Builder, outputReg, baseReg int16, offset int16) *obj.Prog {
+	prog := builder.NewProg()
+	prog.As = x86.ALEAQ
+	prog.To.Type = obj.TYPE_REG
+	prog.To.Reg = outputReg
+	prog.From.Type = obj.TYPE_MEM
+	prog.From.Reg = baseReg
+	prog.From.Offset = int64(offset)
+
+	//prog.From.Scale = 2 - multiply contents of register by scale
+	//prog.From.Index = x86.REG_SI - optional 2nd register
+	return prog
+}
+
 func main() {
         b, _ := asm.NewBuilder("amd64")
         b.AddInstruction(noop(b))
