@@ -42,9 +42,20 @@ func addImmediateByte(builder *asm.Builder, in int32) *obj.Prog {
         return prog
 }
 
+func movImmediateByte(builder *asm.Builder, in int32) *obj.Prog {
+        prog := builder.NewProg()
+        prog.As = x86.AMOVB
+        prog.To.Type = obj.TYPE_REG
+        prog.To.Reg = x86.REG_AL
+        prog.From.Type = obj.TYPE_CONST
+        prog.From.Offset = int64(in)
+        return prog
+}
+
 func main() {
         b, _ := asm.NewBuilder("amd64")
         b.AddInstruction(noop(b))
+        b.AddInstruction(movImmediateByte(b, 16))
         b.AddInstruction(addImmediateByte(b, 16))
         bin := b.Assemble()
         fmt.Printf("Bin: %x\n", bin)
