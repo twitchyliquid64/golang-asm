@@ -6,7 +6,7 @@ License as per the Go project.
 
 # Status
 
-WIP - while the library builds, I'm still working on the best way to initialize internal structures & use it.
+Works, but expect to dig into the assembler godoc's to work out what to set different parameters of `obj.Prog` to get it to generate specific instructions.
 
 # Example
 
@@ -52,91 +52,33 @@ func movImmediateByte(builder *asm.Builder, reg int16, in int32) *obj.Prog {
 	return prog
 }
 
-func movImmediate64bit(builder *asm.Builder, reg int16, in int64) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.AMOVQ
-	prog.To.Type = obj.TYPE_REG
-	prog.To.Reg = reg
-	prog.From.Type = obj.TYPE_CONST
-	prog.From.Offset = in
-	return prog
-}
-
-func pushImmediate64bit(builder *asm.Builder, in int64) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.APUSHQ
-	prog.From.Type = obj.TYPE_CONST
-	prog.From.Offset = in
-	return prog
-}
-
-func popToReg(builder *asm.Builder, reg int16) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.APOPQ
-	prog.To.Type = obj.TYPE_REG
-	prog.To.Reg = reg
-	return prog
-}
-
-// moveFromStack returns an instruction that loads a value into the specified
-// register, reading from memory at an offset from the stack pointer.
-// read at offset 0 to get the return address. Read at offset 8 to get the
-// first 64bit parameter.
-func moveFromStack(builder *asm.Builder, offset int64, reg int16) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.AMOVQ
-	prog.To.Type = obj.TYPE_REG
-	prog.To.Reg = reg
-	prog.From.Type = obj.TYPE_MEM
-	prog.From.Reg = x86.REG_SP
-	prog.From.Offset = offset
-	return prog
-}
-
-// moveToStack returns an instruction that moves the value in the specified register
-// into memory at offset bytes from the stack pointer.
-// In the Go ABI, return values are passed on the stack, above (positive offset)
-// the parameters to the function.
-func moveToStack(builder *asm.Builder, offset int64, reg int16) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.AMOVQ
-	prog.From.Type = obj.TYPE_REG
-	prog.From.Reg = reg
-	prog.To.Type = obj.TYPE_MEM
-	prog.To.Reg = x86.REG_SP
-	prog.To.Offset = offset
-	return prog
-}
-
-// lea computes a memory address by adding the value in baseReg to offset,
-// storing the result in outputReg.
-func lea(builder *asm.Builder, outputReg, baseReg int16, offset int16) *obj.Prog {
-	prog := builder.NewProg()
-	prog.As = x86.ALEAQ
-	prog.To.Type = obj.TYPE_REG
-	prog.To.Reg = outputReg
-	prog.From.Type = obj.TYPE_MEM
-	prog.From.Reg = baseReg
-	prog.From.Offset = int64(offset)
-
-	// An additional register (multiplied by Scale) can be added to the result
-	// by uncommenting the below.
-	//prog.From.Scale = 2 - multiply contents of register by scale
-	//prog.From.Index = x86.REG_SI - optional 2nd register
-	return prog
-}
-
 func main() {
 	b, _ := asm.NewBuilder("amd64")
 	b.AddInstruction(noop(b))
 	b.AddInstruction(movImmediateByte(b, x86.REG_AL, 16))
 	b.AddInstruction(addImmediateByte(b, 16))
-	b.AddInstruction(lea(b, x86.REG_AX, x86.REG_AX, 2))
-	b.AddInstruction(pushImmediate64bit(b, 128))
-	b.AddInstruction(moveToStack(b, -16, x86.REG_AX))
-	b.AddInstruction(moveFromStack(b, -8, x86.REG_AX))
-	bin := b.Assemble()
-	fmt.Printf("Bin: %x\n", bin)
+	fmt.Printf("Bin: %x\n", b.Assemble())
 }
 
 ```
+
+# Working out the parameters of `obj.Prog`
+
+This took me some time to work out, so I'll write a bit here.
+
+## Use these references
+
+ * `obj.Prog` - [godoc](https://godoc.org/github.com/golang/go/src/cmd/internal/obj#Prog)
+  * Some instructions (like NOP, JMP) are abstract per-platform & can be found [here](https://godoc.org/github.com/golang/go/src/cmd/internal/obj#As)
+
+ * (for amd64) `x86 pkg-constants` - [registers & instructions](https://godoc.org/github.com/golang/go/src/cmd/internal/obj/x86#pkg-constant
+
+## Instruction constants have a naming scheme
+
+Instructions are defined as constants in the package for the relavant architecture, and have an 'A' prefix and a size suffix.
+
+For example, the MOV instruction for 64 bits of data is `AMOVQ` (well, at least in amd64).
+
+## Search the go source for usage of a given instruction
+
+For example, if I wanted to work out how to emit the MOV instruction for 64bits, I would search the go source on github for `AMOVQ` or `x86.AMOVQ`. Normally, you see find a few examples where the compiler backend fills in a `obj.Prog` structure, and you follow it's lead.
