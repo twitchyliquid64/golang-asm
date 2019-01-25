@@ -53,7 +53,7 @@ func movImmediateByte(builder *asm.Builder, reg int16, in int32) *obj.Prog {
 }
 
 func main() {
-	b, _ := asm.NewBuilder("amd64")
+	b, _ := asm.NewBuilder("amd64", 64)
 	b.AddInstruction(noop(b))
 	b.AddInstruction(movImmediateByte(b, x86.REG_AL, 16))
 	b.AddInstruction(addImmediateByte(b, 16))

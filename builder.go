@@ -8,10 +8,6 @@ import (
 	"github.com/twitchyliquid64/golang-asm/objabi"
 )
 
-func progAlloc() *obj.Prog {
-	return &obj.Prog{}
-}
-
 // Builder allows you to assemble a series of instructions.
 type Builder struct {
 	ctxt *obj.Link
@@ -19,11 +15,27 @@ type Builder struct {
 
 	first *obj.Prog
 	last  *obj.Prog
+
+	// bulk allocator.
+	block *[]obj.Prog
+	used  int
 }
 
 // NewProg returns a new instruction structure.
 func (b *Builder) NewProg() *obj.Prog {
-	p := b.ctxt.NewProg()
+	return b.progAlloc()
+}
+
+func (b *Builder) progAlloc() *obj.Prog {
+	var p *obj.Prog
+
+	if b.used >= len(*b.block) {
+		p = b.ctxt.NewProg()
+	} else {
+		p = &(*b.block)[b.used]
+		b.used++
+	}
+
 	p.Ctxt = b.ctxt
 	return p
 }
@@ -47,12 +59,12 @@ func (b *Builder) Assemble() []byte {
 			Text: b.first,
 		},
 	}
-	b.arch.Assemble(b.ctxt, s, progAlloc)
+	b.arch.Assemble(b.ctxt, s, b.progAlloc)
 	return s.P
 }
 
 // NewBuilder constructs an assembler for the given architecture.
-func NewBuilder(archStr string) (*Builder, error) {
+func NewBuilder(archStr string, cacheSize int) (*Builder, error) {
 	a := arch.Set(archStr)
 	ctxt := obj.Linknew(a.LinkArch)
 	ctxt.Headtype = objabi.Hlinux
@@ -60,8 +72,12 @@ func NewBuilder(archStr string) (*Builder, error) {
 		fmt.Printf(in+"\n", args...)
 	}
 	a.Init(ctxt)
+
+	block := make([]obj.Prog, cacheSize)
+
 	return &Builder{
-		ctxt: ctxt,
-		arch: a,
+		ctxt:  ctxt,
+		arch:  a,
+		block: &block,
 	}, nil
 }
