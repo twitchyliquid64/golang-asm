@@ -71,7 +71,7 @@ This took me some time to work out, so I'll write a bit here.
  * `obj.Prog` - [godoc](https://godoc.org/github.com/golang/go/src/cmd/internal/obj#Prog)
   * Some instructions (like NOP, JMP) are abstract per-platform & can be found [here](https://godoc.org/github.com/golang/go/src/cmd/internal/obj#As)
 
- * (for amd64) `x86 pkg-constants` - [registers & instructions](https://godoc.org/github.com/golang/go/src/cmd/internal/obj/x86#pkg-constant
+ * (for amd64) `x86 pkg-constants` - [registers & instructions](https://godoc.org/github.com/golang/go/src/cmd/internal/obj/x86#pkg-constant)
 
 ## Instruction constants have a naming scheme
 
