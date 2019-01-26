@@ -21,6 +21,11 @@ type Builder struct {
 	used  int
 }
 
+// Root returns the first instruction.
+func (b *Builder) Root() *obj.Prog {
+	return b.first
+}
+
 // NewProg returns a new instruction structure.
 func (b *Builder) NewProg() *obj.Prog {
 	return b.progAlloc()
