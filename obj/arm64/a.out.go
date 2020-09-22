@@ -195,22 +195,12 @@ const (
 
 // Special registers, after subtracting obj.RBaseARM64, bit 12 indicates
 // a special register and the low bits select the register.
+// SYSREG_END is the last item in the automatically generated system register
+// declaration, and it is defined in the sysRegEnc.go file.
 const (
-	REG_SPECIAL = obj.RBaseARM64 + 1<<12 + iota
-	REG_DAIF
-	REG_NZCV
-	REG_FPSR
-	REG_FPCR
-	REG_SPSR_EL1
-	REG_ELR_EL1
-	REG_SPSR_EL2
-	REG_ELR_EL2
-	REG_CurrentEL
-	REG_SP_EL0
-	REG_SPSel
-	REG_DAIFSet
+	REG_SPECIAL = obj.RBaseARM64 + 1<<12
+	REG_DAIFSet = SYSREG_END + iota
 	REG_DAIFClr
-	REG_DCZID_EL0
 	REG_PLDL1KEEP
 	REG_PLDL1STRM
 	REG_PLDL2KEEP
@@ -241,8 +231,8 @@ const (
 // compiler allocates external registers F26 down
 const (
 	REGMIN = REG_R7  // register variables allocated from here to REGMAX
-	REGRT1 = REG_R16 // ARM64 IP0, for external linker, runtime, duffzero and duffcopy
-	REGRT2 = REG_R17 // ARM64 IP1, for external linker, runtime, duffcopy
+	REGRT1 = REG_R16 // ARM64 IP0, external linker may use as a scrach register in trampoline
+	REGRT2 = REG_R17 // ARM64 IP1, external linker may use as a scrach register in trampoline
 	REGPR  = REG_R18 // ARM64 platform register, unused in the Go toolchain
 	REGMAX = REG_R25
 
@@ -420,9 +410,10 @@ const (
 	C_FCON     // floating-point constant
 	C_VCONADDR // 64-bit memory address
 
-	C_AACON // ADDCON offset in auto constant $a(FP)
-	C_LACON // 32-bit offset in auto constant $a(FP)
-	C_AECON // ADDCON offset in extern constant $e(SB)
+	C_AACON  // ADDCON offset in auto constant $a(FP)
+	C_AACON2 // 24-bit offset in auto constant $a(FP)
+	C_LACON  // 32-bit offset in auto constant $a(FP)
+	C_AECON  // ADDCON offset in extern constant $e(SB)
 
 	// TODO(aram): only one branch class should be enough
 	C_SBRA // for TYPE_BRANCH
@@ -598,18 +589,38 @@ const (
 	AHVC
 	AIC
 	AISB
+	ALDADDAB
+	ALDADDAD
+	ALDADDAH
+	ALDADDAW
 	ALDADDALB
+	ALDADDALD
 	ALDADDALH
 	ALDADDALW
-	ALDADDALD
 	ALDADDB
+	ALDADDD
 	ALDADDH
 	ALDADDW
-	ALDADDD
+	ALDADDLB
+	ALDADDLD
+	ALDADDLH
+	ALDADDLW
+	ALDANDAB
+	ALDANDAD
+	ALDANDAH
+	ALDANDAW
+	ALDANDALB
+	ALDANDALD
+	ALDANDALH
+	ALDANDALW
 	ALDANDB
+	ALDANDD
 	ALDANDH
 	ALDANDW
-	ALDANDD
+	ALDANDLB
+	ALDANDLD
+	ALDANDLH
+	ALDANDLW
 	ALDAR
 	ALDARB
 	ALDARH
@@ -620,14 +631,38 @@ const (
 	ALDAXRB
 	ALDAXRH
 	ALDAXRW
+	ALDEORAB
+	ALDEORAD
+	ALDEORAH
+	ALDEORAW
+	ALDEORALB
+	ALDEORALD
+	ALDEORALH
+	ALDEORALW
 	ALDEORB
+	ALDEORD
 	ALDEORH
 	ALDEORW
-	ALDEORD
+	ALDEORLB
+	ALDEORLD
+	ALDEORLH
+	ALDEORLW
+	ALDORAB
+	ALDORAD
+	ALDORAH
+	ALDORAW
+	ALDORALB
+	ALDORALD
+	ALDORALH
+	ALDORALW
 	ALDORB
+	ALDORD
 	ALDORH
 	ALDORW
-	ALDORD
+	ALDORLB
+	ALDORLD
+	ALDORLH
+	ALDORLW
 	ALDP
 	ALDPW
 	ALDPSW
@@ -667,6 +702,7 @@ const (
 	ANGCS
 	ANGCSW
 	ANGCW
+	ANOOP
 	AORN
 	AORNW
 	AORR
@@ -779,14 +815,22 @@ const (
 	AMOVPS
 	AMOVPSW
 	AMOVPW
-	ASWPD
+	ASWPAD
+	ASWPAW
+	ASWPAH
+	ASWPAB
 	ASWPALD
-	ASWPW
 	ASWPALW
-	ASWPH
 	ASWPALH
-	ASWPB
 	ASWPALB
+	ASWPD
+	ASWPW
+	ASWPH
+	ASWPB
+	ASWPLD
+	ASWPLW
+	ASWPLH
+	ASWPLB
 	ABEQ
 	ABNE
 	ABCS
@@ -831,6 +875,7 @@ const (
 	AFLDPS
 	AFMOVD
 	AFMOVS
+	AFMOVQ
 	AFMULD
 	AFMULS
 	AFNEGD
@@ -903,18 +948,34 @@ const (
 	ASHA256H2
 	ASHA256SU0
 	ASHA256SU1
+	ASHA512H
+	ASHA512H2
+	ASHA512SU0
+	ASHA512SU1
 	AVADD
 	AVADDP
 	AVAND
+	AVBIF
 	AVCMEQ
 	AVCNT
 	AVEOR
 	AVMOV
 	AVLD1
+	AVLD2
+	AVLD3
+	AVLD4
+	AVLD1R
+	AVLD2R
+	AVLD3R
+	AVLD4R
 	AVORR
+	AVREV16
 	AVREV32
 	AVREV64
 	AVST1
+	AVST2
+	AVST3
+	AVST4
 	AVDUP
 	AVADDV
 	AVMOVI
@@ -927,11 +988,20 @@ const (
 	AVEXT
 	AVRBIT
 	AVUSHR
+	AVUSHLL
+	AVUSHLL2
+	AVUXTL
+	AVUXTL2
+	AVUZP1
+	AVUZP2
 	AVSHL
 	AVSRI
+	AVBSL
+	AVBIT
 	AVTBL
 	AVZIP1
 	AVZIP2
+	AVCMTST
 	ALAST
 	AB  = obj.AJMP
 	ABL = obj.ACALL
